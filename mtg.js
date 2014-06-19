@@ -1,11 +1,11 @@
 var module = angular.module('mtg', ['ngRoute', 'timer']);
 
 DEBUG = true;
-	
+
 module.controller('main', function($scope, $filter) {
 	$scope.matches = [];
 	$scope.players = [{}, {}];
-	
+	var orderBy = $filter('orderBy');
 	
 	$scope.importFromStorage = function() {
 		console.log("Importing from local storage");
@@ -15,6 +15,7 @@ module.controller('main', function($scope, $filter) {
 		$scope.players = tourney.players;
 		$scope.matches = tourney.matches;
 		$scope.inited = true;
+		$scope.updatePlayerRanks();
 	};
 	
 	$scope.exportToStorage = function() {
@@ -31,7 +32,25 @@ module.controller('main', function($scope, $filter) {
 			$scope.players[p].won = 
 			$scope.players[p].lost = 
 			$scope.players[p].draw = 0;
+			$scope.players[p].rank = 1;
 		}
+	};
+	
+	$scope.updatePlayerRanks = function() {
+		$scope.players = orderBy($scope.players, ['-won','-draw']);
+		prev = $scope.players[0];
+		prev.rank = 1;
+		for(var i = 1; i < $scope.players.length; i++) {
+			curr = $scope.players[i];
+			if(curr.won == prev.won && curr.draw == prev.draw) // Not counting losses here.
+			{
+				curr.rank = prev.rank;
+			} else {
+				curr.rank = prev.rank + 1;
+				prev = curr;
+			}
+		}
+		console.log($scope.players);		
 	};
 	
 	$scope.createMatches = function() {					
@@ -93,7 +112,6 @@ module.controller('main', function($scope, $filter) {
 				break;
 			}
 			
-			// Should never happen
 			if(m == $scope.matches.length) {
 				picked_players = []; // new round.
 			}
@@ -109,8 +127,6 @@ module.controller('main', function($scope, $filter) {
 		$scope.createMatches();	
 		$scope.exportToStorage();			
 	};
-	
-	var orderBy = $filter('orderBy');
 	
 	$scope.matchEvaluator = function(a) {
 		statusorder = ['playing','queued','ended']
@@ -152,6 +168,7 @@ module.controller('main', function($scope, $filter) {
 		}
 		
 		$scope.reorderMatches();
+		$scope.updatePlayerRanks();
 	};
 	
 	$scope.reset = function() {

@@ -3,7 +3,9 @@
 <head>
 	<title>MTG</title>
 	<link rel="stylesheet" href="kube.min.css">
+	<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="mtg.css">
+	
 	
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.17/angular.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.17/angular-route.min.js"></script>
@@ -55,7 +57,11 @@
 					</thead>
 					<tbody>
 						<tr ng-repeat="player in players | orderBy:['-won','-draw']">
-							<td>{{$index+1}}</td>
+							<td>
+								<i class="fa fa-trophy gold" ng-show="player.rank == 1"></i>
+								<i class="fa fa-trophy silver" ng-show="player.rank == 2"></i>
+								<i class="fa fa-trophy bronze" ng-show="player.rank == 3"></i>
+								 {{player.rank}}</td>
 							<td>{{player.name}}</td>
 							<td>{{player.won}} / {{player.draw}} / {{player.lost}}</td>
 							<td>{{player.won + player.lost + player.draw}}</td>

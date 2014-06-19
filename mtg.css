@@ -63,3 +63,18 @@ header h1 {
 @-webkit-keyframes blink {
   to { visibility: hidden; }
 }
+
+/*
+	Kludge, but eh
+*/
+.gold {
+	color: gold;
+}
+
+.silver {
+	color: silver;
+}
+
+.bronze {
+	color: bronze;
+}
