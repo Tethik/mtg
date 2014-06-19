@@ -1,0 +1,24 @@
+body {
+	padding-top: 100px;
+}
+
+.match {
+	border-radius: 5px;
+	background-color: #C7F7CD;
+	padding: 15px;
+	margin-bottom: 20px;
+	text-align: center;
+}
+
+.match h1,h2,h3,h4 {
+	text-align: left;
+	color: #6E9C74;
+}
+
+.match input[type="text"] {
+	text-align: center;
+}
+
+.match .divider {
+	padding-top: 10px;
+}
