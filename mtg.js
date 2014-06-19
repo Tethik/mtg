@@ -1,12 +1,28 @@
-var module = angular.module('mtg', ['ngRoute']);
+var module = angular.module('mtg', ['ngRoute', 'timer']);
+
+DEBUG = true;
 	
 module.controller('main', function($scope, $filter) {
-	$scope.round = 0;
 	$scope.date = '2014-06-13';
-	
-	$scope.players = [{}, {}];
-	$scope.players = [{name:'Herp'}, {name:'Derp'}, {name:'Merp'}];
 	$scope.matches = [];
+	$scope.players = [{}, {}];
+	
+	
+	$scope.importFromStorage = function() {
+		console.log("Importing from local storage");
+		tourney = JSON.parse(localStorage.tourney);
+		console.log(tourney);
+		$scope.players = tourney.players;
+		$scope.matches = tourney.matches;
+		$scope.inited = true;
+	};
+	
+	$scope.exportToStorage = function() {
+		localStorage.tourney = JSON.stringify({
+			players: $scope.players,
+			matches: $scope.matches,
+		});
+	};
 	
 	$scope.initPlayers = function() {
 		for(var p = 0; p < $scope.players.length; p++) {
@@ -41,6 +57,7 @@ module.controller('main', function($scope, $filter) {
 	};
 	
 	$scope.init = function() {
+		console.log("Init was called");
 		$scope.inited = true;
 		$scope.initPlayers();
 		$scope.createMatches();				
@@ -54,13 +71,23 @@ module.controller('main', function($scope, $filter) {
 		return letters[statusorder.indexOf(a.status)] + a.index;
 	};
 	
-	$scope.reorderMatches = function() {
-		$scope.matches = orderBy($scope.matches, $scope.matchEvaluator, false);
-		var updatedCount = 0;
+	$scope.getMatchesLeft = function() {
+		var count = 0;
 		for(var i = 0; i < $scope.matches.length; i++)
 			if($scope.matches[i].status != 'ended')
-				updatedCount++;
-		$scope.matchesLeft = updatedCount;
+				count++;
+		return count;
+	};
+	
+	$scope.reorderMatches = function() {
+		$scope.matches = orderBy($scope.matches, $scope.matchEvaluator, false);
+		$scope.exportToStorage();
+	};
+	
+	$scope.startMatch = function(match) {
+		match.status = 'playing'; 
+		match.endtime = new Date().getTime() + 45*60*1000; // todo flytta till setting.
+		$scope.reorderMatches();		
 	};
 	
 	$scope.endMatch = function(match) {
@@ -80,5 +107,23 @@ module.controller('main', function($scope, $filter) {
 		$scope.reorderMatches();
 	};
 	
-	$scope.init(); // debug
+	$scope.reset = function() {
+		$scope.matches = [];
+		$scope.players = [{}, {}];
+		
+		$scope.inited = false;
+		
+		if(DEBUG) {
+			$scope.players = [{name:'Herp'}, {name:'Derp'}, {name:'Merp'}];
+		}
+		
+		$scope.exportToStorage();
+	};
+	
+	if (localStorage.tourney) {
+		$scope.importFromStorage();
+	}
+	
+	if($scope.players.length > 0 && $scope.players[0].name != "" && DEBUG && !$scope.inited)
+		$scope.init(); 
 });
