@@ -3,7 +3,6 @@ var module = angular.module('mtg', ['ngRoute', 'timer']);
 DEBUG = true;
 	
 module.controller('main', function($scope, $filter) {
-	$scope.date = '2014-06-13';
 	$scope.matches = [];
 	$scope.players = [{}, {}];
 	
@@ -12,6 +11,7 @@ module.controller('main', function($scope, $filter) {
 		console.log("Importing from local storage");
 		tourney = JSON.parse(localStorage.tourney);
 		console.log(tourney);
+		$scope.title = tourney.title;
 		$scope.players = tourney.players;
 		$scope.matches = tourney.matches;
 		$scope.inited = true;
@@ -21,6 +21,8 @@ module.controller('main', function($scope, $filter) {
 		localStorage.tourney = JSON.stringify({
 			players: $scope.players,
 			matches: $scope.matches,
+			title: $scope.title,
+			inited: $scope.inited,
 		});
 	};
 	
@@ -43,16 +45,60 @@ module.controller('main', function($scope, $filter) {
 				var player2 = $scope.players[p2];
 				
 				var match = {
-					index: index,
 					players: [player1, player2],
 					scores: [0, 0],
-					status: 'queued'
+					status: 'queued',
+					index: -1
 				}
-				index++;
+				
 				
 				$scope.matches.push(match);
 			}
 		}
+		
+		// Semi-Random ordering of the matches. 
+		// Should be so that min n-1 players have a match in the first
+		// round. This problem could be reduced to finding a Hamilton path...
+		indexes = [];
+		for(var i = 0; i < $scope.matches.length; i++)
+			indexes.push(i);
+		
+		// Random shuffle. This could probably be improved in terms of efficiency.
+		matches_without_index = [];
+		while(indexes.length > 0) {			
+			pick = Math.floor(Math.random() * indexes.length);
+			ind = indexes[pick];
+			matches_without_index.push(ind);
+			indexes.splice(pick, 1);
+		}
+		
+		console.log(matches_without_index);
+		
+		
+		picked_players = [];
+		for(var i = 0; i < $scope.matches.length;) {			
+			var m = 0;
+			for(; m < $scope.matches.length; m++) {
+				var match = $scope.matches[matches_without_index[m]]; // accessing the random order.
+				
+				if(match.index > -1)
+					continue; // already visited.
+					
+				if(picked_players.indexOf(match.players[0]) > -1 || picked_players.indexOf(match.players[1]) > -1)
+					continue; // at least one of the players already has a matchup this round.
+					
+				match.index = i++;
+				picked_players.push(match.players[0]);
+				picked_players.push(match.players[1]);
+				break;
+			}
+			
+			// Should never happen
+			if(m == $scope.matches.length) {
+				picked_players = []; // new round.
+			}
+		}
+		
 		$scope.matchesLeft = $scope.matches.length;
 	};
 	
@@ -60,7 +106,8 @@ module.controller('main', function($scope, $filter) {
 		console.log("Init was called");
 		$scope.inited = true;
 		$scope.initPlayers();
-		$scope.createMatches();				
+		$scope.createMatches();	
+		$scope.exportToStorage();			
 	};
 	
 	var orderBy = $filter('orderBy');
@@ -122,8 +169,5 @@ module.controller('main', function($scope, $filter) {
 	
 	if (localStorage.tourney) {
 		$scope.importFromStorage();
-	}
-	
-	if($scope.players.length > 0 && $scope.players[0].name != "" && DEBUG && !$scope.inited)
-		$scope.init(); 
+	} 
 });
