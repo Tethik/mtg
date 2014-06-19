@@ -14,17 +14,28 @@ module.controller('main', function($scope, $filter) {
 		$scope.title = tourney.title;
 		$scope.players = tourney.players;
 		$scope.matches = tourney.matches;
+		// ugly way of rebind players to respective matches.
+		for(var m = 0; m < $scope.matches.length; m++)
+		{
+			for(var i = 0; i < $scope.players.length; i++) {
+				if($scope.matches[m].players[0].id == $scope.players[i].id)
+					$scope.matches[m].players[0] = $scope.players[i];
+				if($scope.matches[m].players[1].id == $scope.players[i].id)
+					$scope.matches[m].players[1] = $scope.players[i];	
+			}
+		}
 		$scope.inited = true;
 		$scope.updatePlayerRanks();
 	};
 	
-	$scope.exportToStorage = function() {
+	$scope.exportToStorage = function() {		
 		localStorage.tourney = JSON.stringify({
 			players: $scope.players,
 			matches: $scope.matches,
 			title: $scope.title,
 			inited: $scope.inited,
 		});
+		console.log("Exported to storage");
 	};
 	
 	$scope.initPlayers = function() {
@@ -33,6 +44,7 @@ module.controller('main', function($scope, $filter) {
 			$scope.players[p].lost = 
 			$scope.players[p].draw = 0;
 			$scope.players[p].rank = 1;
+			$scope.players[p].id = p;
 		}
 	};
 	
@@ -151,6 +163,23 @@ module.controller('main', function($scope, $filter) {
 		match.status = 'playing'; 
 		match.endtime = new Date().getTime() + 45*60*1000; // todo flytta till setting.
 		$scope.reorderMatches();		
+	};
+	
+	$scope.editMatch = function(match) {
+		match.status = 'playing'; 
+		if(match.scores[0] == match.scores[1])
+		{
+			match.players[0].draw -= 1;
+			match.players[1].draw -= 1;
+		} else if(match.scores[0] > match.scores[1]) {
+			match.players[0].won -= 1;
+			match.players[1].lost -= 1;
+		} else {
+			match.players[1].won -= 1;
+			match.players[0].lost -= 1;
+		}
+		$scope.updatePlayerRanks();
+		$scope.reorderMatches();	
 	};
 	
 	$scope.endMatch = function(match) {

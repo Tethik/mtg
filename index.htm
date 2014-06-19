@@ -103,6 +103,7 @@
 					<div class="right">
 						<button class="btn" ng-show="match.status == 'queued'" ng-click="startMatch(match)">Start Match</button>
 						<button class="btn" ng-show="match.status == 'playing'" ng-click="endMatch(match)">End Match</button>
+						<button class="btn" ng-show="match.status == 'ended'" ng-click="editMatch(match)">Edit Match</button>
 					</div>				
 				</div>
 			</form>
