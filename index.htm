@@ -16,7 +16,7 @@
 			<h1>Pro MTG Tourney {{date}}</h1>
 			<hr>
 		
-			<div ng-show="round == 0">
+			<div ng-show="!inited">
 				<p>List the players who will be in this tournament.</p>
 				<div class="table-container">					
 					<table class="width-100">
@@ -28,31 +28,29 @@
 				</div>
 				<hr>
 				<button class="btn" ng-click="players.push({})">Add Player</button>
-				<button class="btn btn-green" ng-click="nextRound()">Done</button>
+				<button class="btn btn-green" ng-click="init()">Done</button>
 				
 			</div>
 			
 			
-			<div ng-show="round > 0">
-				<h1>Current Scoreboard (Rounds)</h1>				
+			<div ng-show="inited">
+				<h1>Current Scoreboard</h1>				
 				<div class="table-container">
 					 <table class="width-100">
 						<thead>
 							<tr>
 								<th>#</th>
 								<th>Name</th>
-								<th>Won</th>
-								<th>Lost</th>
+								<th>Won / Draw / Lost</th>
 								<th>Played</th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="player in players">
+							<tr ng-repeat="player in players | orderBy:['-won','-draw']">
 								<td>{{$index+1}}</td>
 								<td>{{player.name}}</td>
-								<td>{{player.won}}</td>
-								<td>{{player.lost}}</td>
-								<td>{{player.won + player.lost}}</td>
+								<td>{{player.won}} / {{player.draw}} / {{player.lost}}</td>
+								<td>{{player.won + player.lost + player.draw}}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -61,8 +59,8 @@
 				
 				<h1>Matches</h1>				
 				<form class="forms width-100">
-					<div ng-repeat="match in matches" class="match units-row width-100">
-						<h4>#{{$index+1}}</h4>							
+					<div ng-repeat="match in matches | orderBy:matchEvaluator" class="match units-row width-100" ng-class="match.status">
+						<h4>#{{match.index+1}}</h4>							
 						<div class="unit-centered unit-70 units-row end">
 							<div class="unit-40">							
 								<label>
@@ -71,7 +69,7 @@
 								</label> 							
 							</div>
 							
-							<div class="unit-10 divider">
+							<div class="unit-20 divider">
 								-
 							</div>
 
@@ -81,6 +79,10 @@
 									<input type="text" ng-model="match.scores[1]" class="width-100" required>
 								</label> 						
 							</div>	
+						</div>
+						<div>
+							<button class="btn" ng-show="match.status == 'queued'" ng-click="match.status = 'playing'; reorderMatches();">Start Match</button>
+							<button class="btn" ng-show="match.status == 'playing'" ng-click="endMatch(match)">End Match</button>
 						</div>				
 					</div>
 				</form>
